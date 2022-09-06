@@ -1,12 +1,13 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+const {PORT} = process.env;
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-app.listen(8080, () => {
-    console.log("Server listening on port 8080");
+app.listen(PORT, () => {
+    console.log("Server listening on port" + PORT);
 });
