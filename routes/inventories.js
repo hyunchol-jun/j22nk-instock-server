@@ -1,9 +1,13 @@
 const express = require("express");
 const router = express.Router();
 
-router.get("/", (req, res) => {
-    res.send("Get request to inventories");
-})
+router.route("/")
+    .get((req, res) => {
+        res.send("Get request to inventories");
+    })
+    .post((req, res) => {
+        res.send("Post request to inventories");
+    })
 
 router.route("/:inventoryId")
     .get((req, res) => {
@@ -11,9 +15,6 @@ router.route("/:inventoryId")
 })
     .put((req, res) => {
     res.send("Put request to inventory ID: " + req.params.inventoryId);
-})
-    .post((req, res) => {
-    res.send("Post request to inventory ID: " + req.params.inventoryId);
 })
 
 module.exports = router;
