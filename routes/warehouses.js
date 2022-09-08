@@ -53,38 +53,17 @@ router.route("/")
 
         const includesEmptyString = requestedValuesInArray.includes("");
         if (includesEmptyString) {
-            res.status(400).json({message: "there's some empty values"})
+            const errorMessagesArray = [];
+            requestedValuesInArray.forEach((value) => {
+                errorMessagesArray.push(value ? "" : "This field is required");
+            })
+
+            res.status(400).json(errorMessagesArray)
         }
-        res.send("No empty values")
 
         const requestedWarehouse = {
+            ...requestBody,
             id: crypto.randomUUID(),
-            name: req.body.name,
-            address: req.body.address,
-            city: req.body.city,
-            country: req.body.country,
-            contact: {
-                name: req.body.contact.name,
-                position: req.body.contact.position,
-                phone: req.body.contact.phone,
-                email: req.body.contact.email
-            }
-        }
-
-        if (true) {
-            const errorMessages = {
-                name: "",
-                address: "",
-                city: "",
-                country: "",
-                contact: {
-                    name: "",
-                    position: "",
-                    phone: "",
-                    email: ""
-                }
-            }
-            res.status(400).json(errorMessages);
         }
 
         const warehouses = readWarehouses();
