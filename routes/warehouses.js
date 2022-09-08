@@ -15,6 +15,22 @@ function WriteWarehouses(warehouses) {
     fs.writeFileSync(warehouseFilePath, JSON.stringify(warehouses));
 }
 
+function isPhoneNumber(phoneNumber) {
+    // Define regular expression rule
+    const regex = /^\+?[0-9]?\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
+
+    // Return true or false depending on the match result
+    return regex.test(phoneNumber);
+}
+
+function isEmailAddress(email) {
+    // Define regular expression rule
+    const regex = /^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/;
+
+    // Return true or false depending on the match result
+    return regex.test(email);
+}
+
 // GET all warehouses
 router.route("/")
     .get((req, res) => {
@@ -39,39 +55,61 @@ router.route("/")
         res.status(200).json(listOfWarehouses);
     })
     .post((req, res) => {
-        const requestBody = req.body;
         const requestedValuesInArray = [
-            requestBody.name,
-            requestBody.address,
-            requestBody.city,
-            requestBody.country,
-            requestBody.contact.name,
-            requestBody.contact.position,
-            requestBody.contact.phone,
-            requestBody.contact.email
+            req.body.name,
+            req.body.address,
+            req.body.city,
+            req.body.country,
+            req.body.contact.name,
+            req.body.contact.position,
+            req.body.contact.phone,
+            req.body.contact.email
         ];
 
-        const includesEmptyString = requestedValuesInArray.includes("");
-        if (includesEmptyString) {
-            const errorMessagesArray = [];
-            requestedValuesInArray.forEach((value) => {
-                errorMessagesArray.push(value ? "" : "This field is required");
-            })
+        const errorMessagesArray = [];
+        requestedValuesInArray.forEach((value, index) => {
+            errorMessagesArray[index] = value ? "" : "This field is required";
+        })
 
-            res.status(400).json(errorMessagesArray)
+        const PHONE_INDEX = 6;
+        const EMAIL_INDEX = 7;
+
+        // Test if valid phone number only when it's not empty string
+        if (requestedValuesInArray[PHONE_INDEX]) {
+            errorMessagesArray[PHONE_INDEX] = 
+                isPhoneNumber(requestedValuesInArray[PHONE_INDEX])
+                ? ""
+                : "Enter a valid phone number";
         }
 
+        // Test if valid email address only when it's not empty string
+        if (requestedValuesInArray[EMAIL_INDEX]) {
+            errorMessagesArray[EMAIL_INDEX] = 
+                isEmailAddress(requestedValuesInArray[EMAIL_INDEX])
+                ? ""
+                : "Enter a valid email address";
+        }
+
+        // If non-empty values in error array,
+        // return error status code with error messages
+        const indexOfTruthyValue = errorMessagesArray.findIndex(message => !!message);
+        if (indexOfTruthyValue !== -1) {
+            return res.status(400).json(errorMessagesArray);
+        }
+
+        // Create new object with ID
         const requestedWarehouse = {
-            ...requestBody,
             id: crypto.randomUUID(),
+            ...req.body,
         }
 
+        // Read warehouse data and append new object to it
         const warehouses = readWarehouses();
         warehouses.push(requestedWarehouse);
 
         WriteWarehouses(warehouses);
 
-        res.json(warehouses);
+        res.json(requestedWarehouse);
     })
 
 router.route("/:warehouseId")
