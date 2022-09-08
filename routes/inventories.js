@@ -24,5 +24,14 @@ router.route("/:inventoryId")
     .put((req, res) => {
     res.send("Put request to inventory ID: " + req.params.inventoryId);
     })
-
+    .delete((req, res) => {
+        const inventories = readInventoryList();
+        const filteredInventories = inventories.filter((inventory) => {
+            return inventory.id !== req.params.inventoryId;
+        })
+        fs.writeFileSync("./data/inventories.json", JSON.stringify(filteredInventories));
+        res.status(200).json({message: `The specified inventory item (id: ${req.params.inventoryId}) was deleted successfully!`});
+    })
+    
+    
 module.exports = router;
