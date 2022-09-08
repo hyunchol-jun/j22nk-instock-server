@@ -16,7 +16,7 @@ function readInventoryList() {
     return inventoryListData
 }
 
-function WriteWarehouses(warehouses) {
+function writeWarehouses(warehouses) {
     fs.writeFileSync(warehouseFilePath, JSON.stringify(warehouses));
 }
 
@@ -142,7 +142,7 @@ router.route("/")
         const warehouses = readWarehouses();
         warehouses.push(requestedWarehouse);
 
-        WriteWarehouses(warehouses);
+        writeWarehouses(warehouses);
 
         res.status(201).json(requestedWarehouse);
     })
@@ -158,7 +158,21 @@ router.route("/:warehouseId")
         res.status(200).json(singleWarehouse);
     })
     .put((req, res) => {
-    res.send("Put request to warehouse ID: " + req.params.warehouseId);
+        const warehouses = readWarehouses();
+        let foundWarehouseById = warehouses.find((warehouse) => warehouse.id === req.params.warehouseId);
+
+        if (!foundWarehouseById) {
+            return res.status(404).json({error: "Warehouse not found. Please enter a valid warehouse ID."});
+        }
+
+        foundWarehouseById.name = req.body.name;
+        foundWarehouseById.address = req.body.address;
+        foundWarehouseById.city = req.body.city;
+        foundWarehouseById.country = req.body.country;
+        foundWarehouseById.contact = req.body.contact;
+        writeWarehouses(warehouses);
+        res.status(200).json(foundWarehouseById);
+
     })
     .delete((req, res) => {
         const warehouses = readWarehouses();
