@@ -172,7 +172,7 @@ router.route("/:warehouseId")
             return inventory.warehouseID !== req.params.warehouseId;
         })
         fs.writeFileSync("./data/inventories.json", JSON.stringify(filteredInventories));
-        res.status(200).json({message: `The specified warehouse (id: ${req.params.warehouseId}) along with it's associated inventory was deleted successfully!`});
+        res.status(200).json({message: `The specified warehouse (id: ${req.params.warehouseId}) along with it's associated inventory (if any) was deleted successfully!`});
     })
 
 
