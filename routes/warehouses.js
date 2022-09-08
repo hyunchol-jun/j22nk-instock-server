@@ -42,7 +42,13 @@ router.route("/")
 
 router.route("/:warehouseId")
     .get((req, res) => {
-    res.send("Get request to warehouse ID: " + req.params.warehouseId);
+        const warehouses = readWarehouses();
+        const singleWarehouse = warehouses.find((warehouse) => warehouse.id === req.params.warehouseId)
+
+        if (!singleWarehouse) {
+            return res.status(404).json({error: "Warehouse not found. Please enter a valid warehouse ID."});
+        }
+        res.status(200).json(singleWarehouse);
     })
     .put((req, res) => {
     res.send("Put request to warehouse ID: " + req.params.warehouseId);
