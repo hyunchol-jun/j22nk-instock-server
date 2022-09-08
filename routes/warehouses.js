@@ -7,6 +7,11 @@ function readWarehouses() {
     const warehousesData = JSON.parse(warehousesFile);
     return warehousesData;
 }
+function readInventoryList() {
+    const inventoriesListFile = fs.readFileSync("./data/inventories.json");
+    const inventoryListData = JSON.parse(inventoriesListFile);
+    return inventoryListData
+}
 
 // GET all warehouses
 router.route("/")
@@ -40,13 +45,28 @@ router.route("/:warehouseId")
         const warehouses = readWarehouses();
         const singleWarehouse = warehouses.find((warehouse) => warehouse.id === req.params.warehouseId)
 
-    if (!singleWarehouse) {
-        return res.status(404).json({error: "Warehouse not found. Please enter a valid warehouse ID."});
-    }
-    res.status(200).json(singleWarehouse);
-})
+        if (!singleWarehouse) {
+            return res.status(404).json({error: "Warehouse not found. Please enter a valid warehouse ID."});
+        }
+        res.status(200).json(singleWarehouse);
+    })
     .put((req, res) => {
     res.send("Put request to warehouse ID: " + req.params.warehouseId);
-})
+    })
+    .delete((req, res) => {
+        const warehouses = readWarehouses();
+        const filteredWarehouses = warehouses.filter((warehouse) => {
+            return warehouse.id !== req.params.warehouseId;
+        })
+        fs.writeFileSync("./data/warehouses.json", JSON.stringify(filteredWarehouses));
+
+        const inventories = readInventoryList();
+        const filteredInventories = inventories.filter((inventory) => {
+            return inventory.warehouseID !== req.params.warehouseId;
+        })
+        fs.writeFileSync("./data/inventories.json", JSON.stringify(filteredInventories));
+        res.status(200).json({message: `The specified warehouse (id: ${req.params.warehouseId}) along with it's associated inventory was deleted successfully!`});
+    })
+
 
 module.exports = router;
