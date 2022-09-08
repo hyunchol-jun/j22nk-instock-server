@@ -39,6 +39,24 @@ router.route("/")
         res.status(200).json(listOfWarehouses);
     })
     .post((req, res) => {
+        const requestBody = req.body;
+        const requestedValuesInArray = [
+            requestBody.name,
+            requestBody.address,
+            requestBody.city,
+            requestBody.country,
+            requestBody.contact.name,
+            requestBody.contact.position,
+            requestBody.contact.phone,
+            requestBody.contact.email
+        ];
+
+        const includesEmptyString = requestedValuesInArray.includes("");
+        if (includesEmptyString) {
+            res.status(400).json({message: "there's some empty values"})
+        }
+        res.send("No empty values")
+
         const requestedWarehouse = {
             id: crypto.randomUUID(),
             name: req.body.name,
@@ -53,12 +71,28 @@ router.route("/")
             }
         }
 
+        if (true) {
+            const errorMessages = {
+                name: "",
+                address: "",
+                city: "",
+                country: "",
+                contact: {
+                    name: "",
+                    position: "",
+                    phone: "",
+                    email: ""
+                }
+            }
+            res.status(400).json(errorMessages);
+        }
+
         const warehouses = readWarehouses();
         warehouses.push(requestedWarehouse);
 
         WriteWarehouses(warehouses);
 
-        res.json(requestedWarehouse);
+        res.json(warehouses);
     })
 
 router.route("/:warehouseId")
