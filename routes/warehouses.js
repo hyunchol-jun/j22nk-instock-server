@@ -23,6 +23,10 @@ function isPhoneNumber(phoneNumber) {
     return regex.test(phoneNumber);
 }
 
+function convertPhoneNumber(phoneNumber) {
+    return phoneNumber;
+}
+
 function isEmailAddress(email) {
     // Define regular expression rule
     const regex = /^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/;
@@ -102,6 +106,7 @@ router.route("/")
             id: crypto.randomUUID(),
             ...req.body,
         }
+        requestedWarehouse.contact.phone = convertPhoneNumber(req.body.contact.phone);
 
         // Read warehouse data and append new object to it
         const warehouses = readWarehouses();
@@ -109,7 +114,7 @@ router.route("/")
 
         WriteWarehouses(warehouses);
 
-        res.json(requestedWarehouse);
+        res.status(201).json(requestedWarehouse);
     })
 
 router.route("/:warehouseId")
