@@ -15,5 +15,5 @@ const warehousesRoutes = require("./routes/warehouses");
 app.use("/warehouses", warehousesRoutes);
 
 app.listen(PORT, () => {
-    console.log("Server listening on port" + PORT);
+    console.log("Server listening on port", PORT);
 });
