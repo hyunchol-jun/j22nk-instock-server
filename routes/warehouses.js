@@ -1,11 +1,18 @@
 const express = require("express");
 const router = express.Router();
 const fs = require("fs");
+const crypto = require("crypto");
+
+const warehouseFilePath = "./data/warehouses.json";
 
 function readWarehouses() {
-    const warehousesFile = fs.readFileSync("./data/warehouses.json");
+    const warehousesFile = fs.readFileSync(warehouseFilePath);
     const warehousesData = JSON.parse(warehousesFile);
     return warehousesData;
+}
+
+function WriteWarehouses(warehouses) {
+    fs.writeFileSync(warehouseFilePath, JSON.stringify(warehouses));
 }
 
 // GET all warehouses
@@ -32,7 +39,26 @@ router.route("/")
         res.status(200).json(listOfWarehouses);
     })
     .post((req, res) => {
-        res.send("Post request to warehouses");
+        const requestedWarehouse = {
+            id: crypto.randomUUID(),
+            name: req.body.name,
+            address: req.body.address,
+            city: req.body.city,
+            country: req.body.country,
+            contact: {
+                name: req.body.contact.name,
+                position: req.body.contact.position,
+                phone: req.body.contact.phone,
+                email: req.body.contact.email
+            }
+        }
+
+        const warehouses = readWarehouses();
+        warehouses.push(requestedWarehouse);
+
+        WriteWarehouses(warehouses);
+
+        res.json(requestedWarehouse);
     })
 
 router.route("/:warehouseId")
