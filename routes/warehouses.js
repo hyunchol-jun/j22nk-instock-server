@@ -23,12 +23,37 @@ function isPhoneNumber(phoneNumber) {
     return regex.test(phoneNumber);
 }
 
+function stringFromArray(array, startIndex, length) {
+    let resultString = "";
+    for (let i = startIndex; i < startIndex + length; i++) {
+        resultString += array[i];
+    }
+    return resultString;
+}
+
 function convertPhoneNumber(phoneNumber) {
-    return phoneNumber;
+    const arrayedPhoneNumber = phoneNumber.split("");
+    const onlyNumbers = arrayedPhoneNumber.filter((char) => !isNaN(char));
+    let newPhoneNumber = "";
+
+    if (onlyNumbers.length === 11) {
+        newPhoneNumber = newPhoneNumber + "+" + onlyNumbers[0] + " (";
+        onlyNumbers.splice(0, 1); 
+    } else {
+        newPhoneNumber += "+1 (";
+    }
+
+    newPhoneNumber += stringFromArray(onlyNumbers, 0, 3);
+    newPhoneNumber += ") ";
+    newPhoneNumber += stringFromArray(onlyNumbers, 3, 3);
+    newPhoneNumber += "-";
+    newPhoneNumber += stringFromArray(onlyNumbers, 6, 4);
+
+    return newPhoneNumber;
 }
 
 function isEmailAddress(email) {
-    // Define regular expression rule
+    // Define regular expression ruleset
     const regex = /^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/;
 
     // Return true or false depending on the match result
@@ -101,7 +126,7 @@ router.route("/")
             return res.status(400).json(errorMessagesArray);
         }
 
-        // Create new object with ID
+        // Create new object with ID, with formatted phone number
         const requestedWarehouse = {
             id: crypto.randomUUID(),
             ...req.body,
