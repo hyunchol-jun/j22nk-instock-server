@@ -17,10 +17,20 @@ router.route("/")
         res.send("Post request to inventories");
     })
 
+
+
 router.route("/:inventoryId")
     .get((req, res) => {
-    res.send("Get request to inventory ID: " + req.params.inventoryId);
+    const inventoryItem = readInventoryList()
+    const singleInventoryItem = inventoryItem.find((item) => item.id === req.params.inventoryId);
+
+    if (!singleInventoryItem)
+        res.status(404).json({message: "Id is not found"});
+    else
+        res.json(singleInventoryItem);
+
     })
+    
     .put((req, res) => {
     res.send("Put request to inventory ID: " + req.params.inventoryId);
     })
