@@ -1,11 +1,18 @@
 const express = require("express");
 const router = express.Router();
 const fs = require("fs");
+const crypto = require("crypto");
+
+const inventoriesFilePath = "./data/inventories.json";
 
 function readInventoryList() {
     const inventoriesListFile = fs.readFileSync("./data/inventories.json");
     const inventoryListData = JSON.parse(inventoriesListFile);
     return inventoryListData
+}
+
+function WriteInventories(inventories) {
+    fs.writeFileSync(inventoriesFilePath, JSON.stringify(inventories));
 }
 
 router.route("/")
@@ -14,7 +21,47 @@ router.route("/")
         res.send(inventoryList);
     })
     .post((req, res) => {
-        res.send("Post request to inventories");
+        if (!req.body.itemName) {
+            return res.status(400).send("This field is required");
+        } 
+          
+        if (!req.body.description) {
+            return res.status(400).send("This field is required");
+        }
+        
+        if (!req.body.category) {
+            return res.status(400).send("This field is required");
+        }
+        
+        if (!req.body.status) {
+            return res.status(400).send("This field is required");
+        }
+
+        
+
+        const inventoryItem = {
+            warehouseID: req.body.warehouseID,
+            warehouseName: req.body.warehouseName,
+            itemName: req.body.itemName,
+            description: req.body.description,
+            category: req.body.category,
+            status: req.body.status,
+            quantity: req.body.quantity,
+        };
+
+         // Create new inventory object with ID
+         const newInventoryItem = {
+            id: crypto.randomUUID(),
+            ...inventoryItem,
+        }
+
+        const inventories = readInventoryList();
+
+        inventories.push(newInventoryItem);
+
+        WriteInventories(inventories);
+
+        res.status(201).json(newInventoryItem)
     })
 
 router.route("/:inventoryId")
