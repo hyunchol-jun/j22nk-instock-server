@@ -22,10 +22,18 @@ function writeWarehouses(warehouses) {
 
 function isPhoneNumber(phoneNumber) {
     // Define regular expression rule
-    const regex = /^\+?[0-9]?\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
+    const regex = /^\+?[0-9]? ?\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
 
     // Return true or false depending on the match result
     return regex.test(phoneNumber);
+}
+
+function isEmailAddress(email) {
+    // Define regular expression ruleset
+    const regex = /^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/;
+
+    // Return true or false depending on the match result
+    return regex.test(email);
 }
 
 function stringFromArray(array, startIndex, length) {
@@ -57,12 +65,33 @@ function convertPhoneNumber(phoneNumber) {
     return newPhoneNumber;
 }
 
-function isEmailAddress(email) {
-    // Define regular expression ruleset
-    const regex = /^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/;
+function makeErrorMessagesArrayWithValues(requestedValuesInArray) {
+    const errorMessagesArray = [];
 
-    // Return true or false depending on the match result
-    return regex.test(email);
+    requestedValuesInArray.forEach((value, index) => {
+        errorMessagesArray[index] = value ? "" : "This field is required";
+    })
+
+    const PHONE_INDEX = 6;
+    const EMAIL_INDEX = 7;
+
+    // Test if valid phone number only when it's not empty string
+    if (requestedValuesInArray[PHONE_INDEX]) {
+        errorMessagesArray[PHONE_INDEX] = 
+            isPhoneNumber(requestedValuesInArray[PHONE_INDEX])
+            ? ""
+            : "Enter a valid phone number";
+    }
+
+    // Test if valid email address only when it's not empty string
+    if (requestedValuesInArray[EMAIL_INDEX]) {
+        errorMessagesArray[EMAIL_INDEX] = 
+            isEmailAddress(requestedValuesInArray[EMAIL_INDEX])
+            ? ""
+            : "Enter a valid email address";
+    }
+
+    return errorMessagesArray;
 }
 
 // GET all warehouses
@@ -100,29 +129,7 @@ router.route("/")
             req.body.contact.email
         ];
 
-        const errorMessagesArray = [];
-        requestedValuesInArray.forEach((value, index) => {
-            errorMessagesArray[index] = value ? "" : "This field is required";
-        })
-
-        const PHONE_INDEX = 6;
-        const EMAIL_INDEX = 7;
-
-        // Test if valid phone number only when it's not empty string
-        if (requestedValuesInArray[PHONE_INDEX]) {
-            errorMessagesArray[PHONE_INDEX] = 
-                isPhoneNumber(requestedValuesInArray[PHONE_INDEX])
-                ? ""
-                : "Enter a valid phone number";
-        }
-
-        // Test if valid email address only when it's not empty string
-        if (requestedValuesInArray[EMAIL_INDEX]) {
-            errorMessagesArray[EMAIL_INDEX] = 
-                isEmailAddress(requestedValuesInArray[EMAIL_INDEX])
-                ? ""
-                : "Enter a valid email address";
-        }
+        const errorMessagesArray = makeErrorMessagesArrayWithValues(requestedValuesInArray);
 
         // If non-empty values in error array,
         // return error status code with error messages
@@ -161,18 +168,41 @@ router.route("/:warehouseId")
         const warehouses = readWarehouses();
         let foundWarehouseById = warehouses.find((warehouse) => warehouse.id === req.params.warehouseId);
 
+        // First error checking with ID
         if (!foundWarehouseById) {
             return res.status(404).json({error: "Warehouse not found. Please enter a valid warehouse ID."});
         }
 
+        // Error checking with values
+        const requestedValuesInArray = [
+            req.body.name,
+            req.body.address,
+            req.body.city,
+            req.body.country,
+            req.body.contact.name,
+            req.body.contact.position,
+            req.body.contact.phone,
+            req.body.contact.email
+        ];
+
+        const errorMessagesArray = makeErrorMessagesArrayWithValues(requestedValuesInArray);
+
+        // If non-empty values in error array,
+        // return error status code with error messages
+        const indexOfTruthyValue = errorMessagesArray.findIndex(message => !!message);
+        if (indexOfTruthyValue !== -1) {
+            return res.status(400).json(errorMessagesArray);
+        }
+
+        // Update the values
         foundWarehouseById.name = req.body.name;
         foundWarehouseById.address = req.body.address;
         foundWarehouseById.city = req.body.city;
         foundWarehouseById.country = req.body.country;
         foundWarehouseById.contact = req.body.contact;
+
         writeWarehouses(warehouses);
         res.status(200).json(foundWarehouseById);
-
     })
     .delete((req, res) => {
         const warehouses = readWarehouses();
