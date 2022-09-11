@@ -1,11 +1,18 @@
 const express = require("express");
 const router = express.Router();
 const fs = require("fs");
+const crypto = require("crypto");
+
+const inventoriesFilePath = "./data/inventories.json";
 
 function readInventoryList() {
     const inventoriesListFile = fs.readFileSync("./data/inventories.json");
     const inventoryListData = JSON.parse(inventoriesListFile);
     return inventoryListData
+}
+
+function WriteInventories(inventories) {
+    fs.writeFileSync(inventoriesFilePath, JSON.stringify(inventories));
 }
 
 router.route("/")
@@ -14,7 +21,55 @@ router.route("/")
         res.send(inventoryList);
     })
     .post((req, res) => {
-        res.send("Post request to inventories");
+        let quantity = req.body.quantity;
+
+        // If in stock, quantity can't be 0. If out of stock, 0 is converted to truthy value
+        if (req.body.status === "In Stock") {
+            quantity = req.body.quantity;
+        } else {
+            quantity = (req.body.quantity).toString();
+        };
+
+        const inventoryItemArray = [
+            req.body.itemName,
+            req.body.description,
+            req.body.category,
+            req.body.status,
+            quantity,
+            req.body.warehouseName,
+            req.body.warehouseID,
+        ];
+
+        const errorMessagesArray = [];
+
+        inventoryItemArray.forEach((value, index) => {
+            errorMessagesArray[index] = value ? "" : "This field is required";
+        });
+
+        // If non-empty values in error array,
+        // return error status code with error messages
+        const indexOfTruthyValue = errorMessagesArray.findIndex(message => !!message);
+        if (indexOfTruthyValue !== -1) {
+            return res.status(400).json(errorMessagesArray);
+        }
+
+         // Create new inventory object with ID
+         const newInventoryItem = {
+            id: crypto.randomUUID(),
+            warehouseID: req.body.warehouseID,
+            warehouseName: req.body.warehouseName,
+            itemName: req.body.itemName,
+            description: req.body.description,
+            category: req.body.category,
+            status: req.body.status,
+            quantity: req.body.quantity
+        }
+
+        const inventories = readInventoryList();
+        inventories.push(newInventoryItem);
+        WriteInventories(inventories);
+
+        res.status(201).json(newInventoryItem)
     })
 
 
