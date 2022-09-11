@@ -21,44 +21,52 @@ router.route("/")
         res.send(inventoryList);
     })
     .post((req, res) => {
-        if (!req.body.itemName) {
-            return res.status(400).send("This field is required");
-        } 
-          
-        if (!req.body.description) {
-            return res.status(400).send("This field is required");
-        }
-        
-        if (!req.body.category) {
-            return res.status(400).send("This field is required");
-        }
-        
-        if (!req.body.status) {
-            return res.status(400).send("This field is required");
+        let quantity = req.body.quantity;
+
+        // If in stock, quantity can't be 0. If out of stock, 0 is converted to truthy value
+        if (req.body.status === "In Stock") {
+            quantity = req.body.quantity;
+        } else {
+            quantity = (req.body.quantity).toString();
+        };
+
+        const inventoryItemArray = [
+            req.body.itemName,
+            req.body.description,
+            req.body.category,
+            req.body.status,
+            quantity,
+            req.body.warehouseName,
+            req.body.warehouseID,
+        ];
+
+        const errorMessagesArray = [];
+
+        inventoryItemArray.forEach((value, index) => {
+            errorMessagesArray[index] = value ? "" : "This field is required";
+        });
+
+        // If non-empty values in error array,
+        // return error status code with error messages
+        const indexOfTruthyValue = errorMessagesArray.findIndex(message => !!message);
+        if (indexOfTruthyValue !== -1) {
+            return res.status(400).json(errorMessagesArray);
         }
 
-        
-
-        const inventoryItem = {
+         // Create new inventory object with ID
+         const newInventoryItem = {
+            id: crypto.randomUUID(),
             warehouseID: req.body.warehouseID,
             warehouseName: req.body.warehouseName,
             itemName: req.body.itemName,
             description: req.body.description,
             category: req.body.category,
             status: req.body.status,
-            quantity: req.body.quantity,
-        };
-
-         // Create new inventory object with ID
-         const newInventoryItem = {
-            id: crypto.randomUUID(),
-            ...inventoryItem,
+            quantity: req.body.quantity
         }
 
         const inventories = readInventoryList();
-
         inventories.push(newInventoryItem);
-
         WriteInventories(inventories);
 
         res.status(201).json(newInventoryItem)
