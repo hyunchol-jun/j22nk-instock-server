@@ -105,9 +105,15 @@ router.route("/:inventoryId")
             req.body.warehouseName
         ]
 
+        console.log(req.body)
+
         const errorMessagesArr = reqBodyValuesArr.map((value) => {
-            return (value||value===0) ? "" : "This field is required";
+            return (value || value===0) ? "" : "This field is required";
         })
+
+        if (req.body.quantity<0 || req.body.quantity==="0") {
+            errorMessagesArr[4] = "Quantity in stock must be greater than 0"
+        }
 
         // If non-empty values in error array,
         // return error status code with error messages
@@ -120,7 +126,7 @@ router.route("/:inventoryId")
         foundInventoryById.description = req.body.description;
         foundInventoryById.category = req.body.category;
         foundInventoryById.status = req.body.status;
-        foundInventoryById.quantity = req.body.quantity;
+        foundInventoryById.quantity = req.body.quantity || 0;
         foundInventoryById.warehouseName = req.body.warehouseName;
         foundInventoryById.warehouseID = req.body.warehouseId;
 
