@@ -46,6 +46,11 @@ router.route("/")
             errorMessagesArray[index] = value ? "" : "This field is required";
         });
 
+        // If item is in stock and quantity is 0, send different error message
+        if (req.body.status === "In Stock" && quantity <= 0) {
+            errorMessagesArray[4] = "Quantity in stock must be greater than 0"
+        }
+
         // If non-empty values in error array,
         // return error status code with error messages
         const indexOfTruthyValue = errorMessagesArray.findIndex(message => !!message);
