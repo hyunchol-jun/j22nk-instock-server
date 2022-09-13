@@ -46,7 +46,10 @@ router.route("/")
             errorMessagesArray[index] = value ? "" : "This field is required";
         });
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> develop
         // If item is in stock and quantity is 0, send different error message
         if (req.body.status === "In Stock" && quantity <= 0) {
             errorMessagesArray[4] = "Quantity in stock must be greater than 0"
@@ -89,12 +92,55 @@ router.route("/:inventoryId")
         res.status(404).json({message: "Id is not found"});
     else
         res.json(singleInventoryItem);
-
     })
     
     .put((req, res) => {
-    res.send("Put request to inventory ID: " + req.params.inventoryId);
+        const inventories = readInventoryList();
+        let foundInventoryById = inventories.find((inventory) => {
+            return inventory.id === req.params.inventoryId;
+        });
+
+        // First error checking with ID
+        if (!foundInventoryById) {
+            return res.status(404).json({error: "Inventory item not found. Please enter a valid ID."});
+        }
+
+        const reqBodyValuesArr = [
+            req.body.itemName,
+            req.body.description,
+            req.body.category,
+            req.body.status,
+            req.body.quantity,
+            req.body.warehouseName
+        ]
+
+        const errorMessagesArr = reqBodyValuesArr.map((value) => {
+            return (value || value===0) ? "" : "This field is required";
+        })
+
+        if (req.body.quantity<0 || req.body.quantity==="0") {
+            errorMessagesArr[4] = "Quantity in stock must be greater than 0"
+        }
+
+        // If non-empty values in error array,
+        // return error status code with error messages
+        const indexOfTruthyValue = errorMessagesArr.findIndex(message => !!message);
+        if (indexOfTruthyValue !== -1) {
+            return res.status(400).json(errorMessagesArr);
+        }
+
+        foundInventoryById.itemName = req.body.itemName;
+        foundInventoryById.description = req.body.description;
+        foundInventoryById.category = req.body.category;
+        foundInventoryById.status = req.body.status;
+        foundInventoryById.quantity = Number(req.body.quantity) || 0;
+        foundInventoryById.warehouseName = req.body.warehouseName;
+        foundInventoryById.warehouseID = req.body.warehouseId;
+
+        WriteInventories(inventories);
+        res.json(foundInventoryById);
     })
+
     .delete((req, res) => {
         const inventories = readInventoryList();
         const filteredInventories = inventories.filter((inventory) => {
