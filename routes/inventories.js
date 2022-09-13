@@ -126,7 +126,7 @@ router.route("/:inventoryId")
         foundInventoryById.description = req.body.description;
         foundInventoryById.category = req.body.category;
         foundInventoryById.status = req.body.status;
-        foundInventoryById.quantity = req.body.quantity || 0;
+        foundInventoryById.quantity = Number(req.body.quantity) || 0;
         foundInventoryById.warehouseName = req.body.warehouseName;
         foundInventoryById.warehouseID = req.body.warehouseId;
 
