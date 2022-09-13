@@ -110,8 +110,6 @@ router.route("/:inventoryId")
             req.body.warehouseName
         ]
 
-        console.log(req.body)
-
         const errorMessagesArr = reqBodyValuesArr.map((value) => {
             return (value || value===0) ? "" : "This field is required";
         })
